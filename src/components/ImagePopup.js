@@ -1,8 +1,7 @@
 function ImagePopup ({card, onClose, isOpen}) {
     return (
     <>
-    <template id="elements-template" />
-    <div className={`popup ${isOpen && "popup_opened"}`} id="photo">
+    <div className={`popup ${(!Object.keys(card).length) == 0 && "popup_opened"}`} id="photo">
         <div className="popup__photo">
         <button
             className="popup__close"
