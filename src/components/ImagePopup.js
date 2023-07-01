@@ -1,4 +1,4 @@
-function ImagePopup ({card, onClose, isOpen}) {
+function ImagePopup ({card, onClose}) {
     return (
     <>
     <div className={`popup ${(!Object.keys(card).length) == 0 && "popup_opened"}`} id="photo">
