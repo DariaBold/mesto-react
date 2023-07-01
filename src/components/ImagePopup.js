@@ -1,6 +1,5 @@
 function ImagePopup ({card, onClose}) {
     return (
-    <>
     <div className={`popup ${(!Object.keys(card).length) == 0 && "popup_opened"}`} id="photo">
         <div className="popup__photo">
         <button
@@ -13,7 +12,6 @@ function ImagePopup ({card, onClose}) {
         <p className="popup__description">{card.name}</p>
         </div>
     </div>
-    </>
   )
 }
 export default ImagePopup;
