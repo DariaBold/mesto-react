@@ -63,7 +63,7 @@ function App() {
             state.map((c) => (c._id === card._id ? newCard : c))
           );
         })
-        .catch((error) => console.error(`Ошибка лайка ${error}`));
+        .catch((error) => console.error(`Ошибка удаления лайка ${error}`));
     } else {
       api
         .putLike(card._id, !isLiked)
@@ -72,7 +72,7 @@ function App() {
             state.map((c) => (c._id === card._id ? newCard : c))
           );
         })
-        .catch((error) => console.error(`Ошибка лайка ${error}`));
+        .catch((error) => console.error(`Ошибка добавления лайка ${error}`));
     }
   }
   function handleCardDelete(cardId) {
