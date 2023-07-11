@@ -30,8 +30,7 @@ function EditProfilePopup(props) {
       setName(currentUser.name);
       setDescription(currentUser.about);
     },
-    [currentUser],
-    [props.isOpen]
+    [currentUser,props.isOpen]
   );
 
   function handleSubmit(e) {
