@@ -1,4 +1,12 @@
-function PopupWithForm({isOpen, onClose, name, title, buttonText, children, onSubmit}) {
+function PopupWithForm({
+  isOpen,
+  onClose,
+  name,
+  title,
+  buttonText,
+  children,
+  onSubmit,
+}) {
   return (
     <div className={`popup ${isOpen && "popup_opened"}`} id={name}>
       <div className="popup__container">
@@ -8,18 +16,10 @@ function PopupWithForm({isOpen, onClose, name, title, buttonText, children, onSu
           aria-label="Закрыть"
           onClick={onClose}
         />
-        <form
-          className="popup__form"
-          name={name}
-          onSubmit={onSubmit}
-        >
+        <form className="popup__form" name={name} onSubmit={onSubmit}>
           <h2 className="popup__title">{title}</h2>
           {children}
-          <button
-            className="popup__save"
-            type="submit"
-            value={buttonText}
-          >
+          <button className="popup__save" type="submit" value={buttonText}>
             {buttonText}
           </button>
         </form>
