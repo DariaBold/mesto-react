@@ -6,16 +6,33 @@ function EditProfilePopup(props) {
   const currentUser = React.useContext(CurrentUserContext);
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
+  const [isValidName, setIsValidName] = React.useState(false);
+  const [isValidDescription, setIsValidDescription] = React.useState(false);
+
   function handleChangeName(e) {
     setName(e.target.value);
+    if (e.target.value.length >= 2 && e.target.value.length <= 40) {
+      setIsValidName(true);
+    } else {
+      setIsValidName(false);
+    }
   }
   function handleChangeDescription(e) {
     setDescription(e.target.value);
+    if (e.target.value.length >= 2 && e.target.value.length <= 200) {
+      setIsValidDescription(true);
+    } else {
+      setIsValidDescription(false);
+    }
   }
-  React.useEffect(() => {
-    setName(currentUser.name);
-    setDescription(currentUser.about);
-  }, [currentUser], [props.isOpen]);
+  React.useEffect(
+    () => {
+      setName(currentUser.name);
+      setDescription(currentUser.about);
+    },
+    [currentUser],
+    [props.isOpen]
+  );
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -32,6 +49,7 @@ function EditProfilePopup(props) {
       isOpen={props.isOpen}
       onClose={props.onClose}
       onSubmit={handleSubmit}
+      isValid={isValidDescription && isValidName}
     >
       <input
         className="popup__input popup__input_type_name"
