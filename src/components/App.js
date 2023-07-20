@@ -1,20 +1,28 @@
 import "../index.css";
 import Header from "./Header.js";
-import Footer from "./Footer.js";
 import Main from "./Main.js";
 import PopupWithForm from "./PopupWithForm.js";
 import ImagePopup from "./ImagePopup.js";
+import Login from "./Login";
+import Register from "./Register";
+import InfoTooltip from "./InfoTooltip";
+import * as auth from "../utils/auth.js";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import React from "react";
 import CurrentUserContext from "../contexts/CurrentUserContext.js";
 import api from "../utils/api";
 import EditProfilePopup from "./EditProfilePopup.js";
 import EditAvatarPopup from "./EditAvatarPopup.js";
 import AddPlacePopup from "./AddPlacePopup.js";
+import ProtectedRoute from "./ProtectedRoute.js";
 
 function App() {
   React.useEffect(() => {
     document.body.classList.add("body");
   }, []);
+
+  const navigate = useNavigate();
+
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] =
     React.useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
@@ -23,6 +31,11 @@ function App() {
   const [selectedCard, setSelectedCard] = React.useState({});
   const [currentUser, setCurrentUser] = React.useState({});
   const [cards, setCards] = React.useState([]);
+  const [loggedIn, setLoggedIn] = React.useState(false);
+  const [infoTool, setInfoTool] = React.useState(false);
+  const [isInfoTooltipPopupOpen, setIsInfoTooltipPopupOpen] =
+    React.useState(false);
+  const [email, setEmail] = React.useState("");
 
   function handleCardClick(card) {
     setSelectedCard(card);
@@ -41,18 +54,23 @@ function App() {
     setIsEditProfilePopupOpen(false);
     setIsEditAvatarPopupOpen(false);
     setSelectedCard({});
+    setIsInfoTooltipPopupOpen(false);
   }
   React.useEffect(() => {
-    Promise.all([api.getUserInfo(), api.getInitialCards()])
-      .then(([info, infoCard]) => {
-        setCurrentUser(info);
-        infoCard.forEach((cards) => {
-          cards.myId = info._id;
-        });
-        setCards(infoCard);
-      })
-      .catch((error) => console.error(`Ошибка получения информации ${error}`));
-  }, []);
+    if (loggedIn) {
+      Promise.all([api.getUserInfo(), api.getInitialCards()])
+        .then(([info, infoCard]) => {
+          setCurrentUser(info);
+          infoCard.forEach((cards) => {
+            cards.myId = info._id;
+          });
+          setCards(infoCard);
+        })
+        .catch((error) =>
+          console.error(`Ошибка получения информации ${error}`)
+        );
+    }
+  }, [loggedIn]);
   function handleCardLike(card) {
     const isLiked = card.likes.some((i) => i._id === currentUser._id);
     if (isLiked) {
@@ -116,20 +134,99 @@ function App() {
       .catch((error) => console.error(`Ошибка добавления карточки ${error}`));
   }
 
+  function handleLogin(email, password)  {
+    auth
+      .authorize(email, password)
+      .then((data) => {
+        localStorage.setItem("jwt", data.token);
+        setLoggedIn(true);
+        setEmail(email);
+        navigate("/", { replace: true });
+      })
+      .catch((err) => {
+        setInfoTool(false);
+        setIsInfoTooltipPopupOpen(true);
+        console.log(err);
+      });
+  };
+
+  function handleRegister(email, password) {
+    auth
+      .registration(email, password)
+      .then(() => {
+        setInfoTool(true);
+        setIsInfoTooltipPopupOpen(true);
+        navigate("/sign-in", { replace: true });
+      })
+      .catch((err) => {
+        setInfoTool(false);
+        setIsInfoTooltipPopupOpen(true);
+        console.log(err);
+      });
+  }
+  React.useEffect(() => {
+    if (localStorage.getItem("jwt")) {
+      const jwt = localStorage.getItem("jwt");
+      auth
+        .checkToken(jwt)
+        .then((res) => {
+          if (res) {
+            setEmail(res.data.email);
+            setLoggedIn(true);
+            navigate("/", { replace: true });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, []);
+
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page">
-        <Header />
-        <Main
-          onAddPlace={handleAddPlaceClick}
-          onEditProfile={handleEditProfileClick}
-          onEditAvatar={handleEditAvatarClick}
-          onCardClick={handleCardClick}
-          onCardLike={handleCardLike}
-          onCardDelete={handleCardDelete}
-          cards={cards}
-        />
-        <Footer />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute
+                element={Main}
+                loggedIn={loggedIn}
+                cards={cards}
+                email={email}
+                onAddPlace={handleAddPlaceClick}
+                onEditProfile={handleEditProfileClick}
+                onEditAvatar={handleEditAvatarClick}
+                onCardClick={handleCardClick}
+                onCardLike={handleCardLike}
+                onCardDelete={handleCardDelete}
+              />
+            }
+          />
+          <Route
+            path="/sign-in"
+            element={
+              <>
+                <Header
+                  direction="Регистрация"
+                  loggedIn={false}
+                  to={"/sign-up"}
+                />
+                <Login loggedIn={loggedIn} handleLogin={handleLogin} />
+              </>
+            }
+          />
+          <Route
+            path="/sign-up"
+            element={
+              <>
+                <Header direction="Войти" loggedIn={false} to={"/sign-in"} />
+                <Register register={handleRegister} />
+              </>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </div>
       <EditProfilePopup
         isOpen={isEditProfilePopupOpen}
@@ -152,6 +249,11 @@ function App() {
         buttonText="Да"
       ></PopupWithForm>
       <ImagePopup card={selectedCard} onClose={closeAllPopups} />
+      <InfoTooltip
+        onClose={closeAllPopups}
+        status={infoTool}
+        isOpen={isInfoTooltipPopupOpen}
+      />
     </CurrentUserContext.Provider>
   );
 }
